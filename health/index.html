@@ -1,0 +1,445 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<title>居民健康自测 | 永丰镇家庭医生服务站</title>
+<meta name="description" content="血压分级、血糖判断、BMI 与腰围、慢病随访提醒卡。纯网页计算，数据只保存在你的手机或电脑上。">
+<link rel="shortcut icon" href="/img/favicon.png">
+<style>
+:root{--main:#49b1f5;--main-d:#2f8fd4;--bg:#f4f8fb;--card:#fff;--text:#2c3e50;--muted:#7f8c8d;--line:#e3eaf0;
+--ok:#27ae60;--warn:#f39c12;--high:#e67e22;--danger:#e74c3c;--radius:12px}
+*{box-sizing:border-box}
+body{margin:0;font:16px/1.7 -apple-system,BlinkMacSystemFont,"PingFang SC","Microsoft YaHei","Noto Sans SC",sans-serif;color:var(--text);background:var(--bg)}
+a{color:var(--main-d)}
+header{background:linear-gradient(135deg,#49b1f5,#6dd5c4);color:#fff;padding:28px 16px 64px;text-align:center}
+header .back{position:absolute;left:16px;top:14px;color:#fff;text-decoration:none;font-size:14px;opacity:.9}
+header h1{margin:8px 0 4px;font-size:26px;letter-spacing:2px}
+header p{margin:0;opacity:.92;font-size:14px}
+main{max-width:860px;margin:-44px auto 40px;padding:0 12px}
+.tabs{display:flex;gap:6px;background:var(--card);border-radius:var(--radius);padding:6px;box-shadow:0 4px 16px rgba(0,0,0,.06);overflow-x:auto}
+.tabs button{flex:1 0 auto;border:0;background:none;padding:10px 12px;border-radius:8px;font-size:15px;color:var(--muted);cursor:pointer;white-space:nowrap}
+.tabs button.active{background:var(--main);color:#fff;font-weight:600}
+.panel{display:none;background:var(--card);border-radius:var(--radius);padding:20px;margin-top:12px;box-shadow:0 4px 16px rgba(0,0,0,.06)}
+.panel.active{display:block}
+h2{font-size:19px;margin:0 0 12px}
+h3{font-size:16px;margin:22px 0 8px}
+.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:12px}
+label{display:block;font-size:14px;color:var(--muted)}
+input,select{width:100%;margin-top:4px;padding:10px 12px;font-size:17px;border:1px solid var(--line);border-radius:8px;background:#fff;color:var(--text)}
+input:focus,select:focus{outline:2px solid var(--main);border-color:transparent}
+.btns{display:flex;flex-wrap:wrap;gap:8px;margin-top:14px}
+.btn{border:0;border-radius:8px;padding:10px 18px;font-size:15px;cursor:pointer;background:var(--main);color:#fff}
+.btn:hover{background:var(--main-d)}
+.btn.ghost{background:#eef6fc;color:var(--main-d)}
+.btn.small{padding:4px 10px;font-size:13px}
+.result{margin-top:16px;border-radius:10px;padding:14px 16px;border-left:6px solid var(--line);background:#fafcfd;display:none}
+.result.show{display:block}
+.result .lv{font-size:20px;font-weight:700}
+.result p{margin:6px 0 0}
+.lv-ok{border-color:var(--ok)}.lv-ok .lv{color:var(--ok)}
+.lv-warn{border-color:var(--warn)}.lv-warn .lv{color:var(--warn)}
+.lv-high{border-color:var(--high)}.lv-high .lv{color:var(--high)}
+.lv-danger{border-color:var(--danger)}.lv-danger .lv{color:var(--danger)}
+.scale{display:flex;height:10px;border-radius:5px;overflow:hidden;margin:12px 0 2px;position:relative}
+.scale span{flex:1}
+.scale-labels{display:flex;font-size:12px;color:var(--muted)}
+.scale-labels span{flex:1;text-align:center}
+.pin{position:absolute;top:-5px;width:4px;height:20px;background:var(--text);border-radius:2px;transform:translateX(-2px);transition:left .4s}
+table{width:100%;border-collapse:collapse;font-size:14px;margin-top:8px}
+th,td{border-bottom:1px solid var(--line);padding:6px 4px;text-align:left}
+th{color:var(--muted);font-weight:normal}
+.note{font-size:13px;color:var(--muted)}
+.chart{width:100%;height:auto;margin-top:8px;background:#fbfdff;border:1px solid var(--line);border-radius:8px}
+.card{border:2px dashed var(--main);border-radius:var(--radius);padding:18px;margin-top:16px;background:#fbfeff}
+.card h3{margin:0 0 6px;text-align:center;font-size:18px}
+.card .row{display:flex;justify-content:space-between;border-bottom:1px dotted var(--line);padding:6px 0;gap:12px}
+.card .row b{font-weight:600;text-align:right}
+.card .big{font-size:26px;color:var(--main-d);font-weight:700;text-align:center;margin:10px 0}
+.disclaimer{margin-top:16px;font-size:13px;color:var(--muted);text-align:center;line-height:1.6}
+.report{display:none}
+@media print{
+  header,.tabs,.btns,.no-print,.disclaimer .no-print{display:none!important}
+  body{background:#fff}
+  main{margin:0;max-width:none}
+  .panel{display:none!important;box-shadow:none}
+  .report{display:block!important}
+  body.print-card .report{display:none!important}
+  body.print-card #p-follow{display:block!important}
+  body.print-card #p-follow>*:not(.card){display:none!important}
+}
+</style>
+</head>
+<body>
+<header>
+  <a class="back" href="/">&larr; 返回主页</a>
+  <h1>居民健康自测</h1>
+  <p>血压 · 血糖 · 体重 · 随访提醒，数据只存在你自己的手机或电脑上</p>
+</header>
+<main>
+  <nav class="tabs" role="tablist">
+    <button class="active" data-tab="bp">血压分级</button>
+    <button data-tab="glu">血糖判断</button>
+    <button data-tab="bmi">BMI 与腰围</button>
+    <button data-tab="follow">随访提醒卡</button>
+    <button data-tab="report">汇总报告</button>
+  </nav>
+
+  <!-- 血压 -->
+  <section class="panel active" id="p-bp">
+    <h2>血压分级</h2>
+    <div class="grid">
+      <label>收缩压（高压）mmHg<input id="bp-s" type="number" inputmode="numeric" min="50" max="300" placeholder="如 135"></label>
+      <label>舒张压（低压）mmHg<input id="bp-d" type="number" inputmode="numeric" min="30" max="200" placeholder="如 85"></label>
+      <label>心率 次/分（选填）<input id="bp-hr" type="number" inputmode="numeric" min="20" max="250" placeholder="如 72"></label>
+    </div>
+    <div class="btns">
+      <button class="btn" id="bp-calc">判断</button>
+      <button class="btn ghost" id="bp-save">记一笔（家庭血压记录）</button>
+    </div>
+    <div class="result" id="bp-res"></div>
+
+    <h3>家庭血压记录</h3>
+    <p class="note">建议每天早上（起床 1 小时内、服药和早餐前）、晚上（睡前）各测 2 次，连续测 7 天。家里自测的血压平均值 ≥135/85 mmHg，就要考虑高血压了（这个标准比诊室低一些）。</p>
+    <div id="bp-summary"></div>
+    <svg class="chart" id="bp-chart" viewBox="0 0 600 220" role="img" aria-label="血压趋势图"></svg>
+    <table id="bp-table"><thead><tr><th>时间</th><th>血压</th><th>心率</th><th>分级</th><th></th></tr></thead><tbody></tbody></table>
+    <div class="btns no-print"><button class="btn ghost small" id="bp-clear">清空记录</button></div>
+  </section>
+
+  <!-- 血糖 -->
+  <section class="panel" id="p-glu">
+    <h2>血糖判断</h2>
+    <div class="grid">
+      <label>测量时间
+        <select id="glu-type">
+          <option value="fasting">空腹（至少 8 小时没进食）</option>
+          <option value="post2h">餐后 2 小时 / 口服葡萄糖耐量试验 2 小时</option>
+          <option value="random">随机（任意时间）</option>
+        </select>
+      </label>
+      <label>血糖值 mmol/L<input id="glu-v" type="number" inputmode="decimal" step="0.1" min="0.5" max="40" placeholder="如 6.3"></label>
+    </div>
+    <label style="margin-top:10px"><input type="checkbox" id="glu-sym" style="width:auto"> 有多饮、多尿、多食、体重明显下降（“三多一少”）</label>
+    <div class="btns"><button class="btn" id="glu-calc">判断</button></div>
+    <div class="result" id="glu-res"></div>
+    <p class="note">家用血糖仪测的是指尖血，只能用来日常监测。要确诊糖尿病，得去医院抽静脉血复查。</p>
+  </section>
+
+  <!-- BMI -->
+  <section class="panel" id="p-bmi">
+    <h2>BMI 与腰围</h2>
+    <div class="grid">
+      <label>性别<select id="bmi-sex"><option value="m">男</option><option value="f">女</option></select></label>
+      <label>身高 cm<input id="bmi-h" type="number" inputmode="decimal" min="80" max="250" placeholder="如 168"></label>
+      <label>体重 kg<input id="bmi-w" type="number" inputmode="decimal" step="0.1" min="20" max="300" placeholder="如 65"></label>
+      <label>腰围 cm（选填）<input id="bmi-waist" type="number" inputmode="decimal" min="40" max="200" placeholder="肚脐上方一横指绕一圈"></label>
+    </div>
+    <div class="btns"><button class="btn" id="bmi-calc">计算</button></div>
+    <div class="result" id="bmi-res"></div>
+  </section>
+
+  <!-- 随访提醒卡 -->
+  <section class="panel" id="p-follow">
+    <h2>慢病随访提醒卡</h2>
+    <p class="note">按国家基本公共卫生服务规范，高血压、2 型糖尿病患者每年至少要面对面随访 4 次（大约每 3 个月一次）；65 岁及以上老人每年做 1 次免费健康体检。</p>
+    <div class="grid">
+      <label>姓名<input id="f-name" placeholder="如 张大爷"></label>
+      <label>随访项目
+        <select id="f-type">
+          <option value="htn">高血压随访（每 3 个月）</option>
+          <option value="dm">糖尿病随访（每 3 个月）</option>
+          <option value="both">高血压 + 糖尿病（每 3 个月）</option>
+          <option value="elder">65 岁以上老人体检（每年）</option>
+        </select>
+      </label>
+      <label>上次随访 / 体检日期<input id="f-last" type="date"></label>
+      <label>签约医生<input id="f-doc" placeholder="如 李医生"></label>
+      <label>联系电话<input id="f-tel" type="tel" placeholder="家庭医生电话"></label>
+    </div>
+    <div class="btns">
+      <button class="btn" id="f-make">生成提醒卡</button>
+      <button class="btn ghost" id="f-ics">加入手机日历</button>
+      <button class="btn ghost" id="f-print">打印提醒卡</button>
+    </div>
+    <div id="f-card"></div>
+  </section>
+
+  <!-- 汇总 -->
+  <section class="panel" id="p-report">
+    <h2>汇总报告</h2>
+    <p class="note">把这页截图或打印出来，下次看病或随访时给家庭医生看。</p>
+    <div id="report-body"></div>
+    <div class="btns"><button class="btn" id="r-print">打印 / 另存为 PDF</button></div>
+  </section>
+
+  <section class="report" id="print-report"></section>
+
+  <p class="disclaimer">本工具依据《中国高血压防治指南（2018 年修订版）》《中国 2 型糖尿病防治指南》《中国成人超重和肥胖症预防控制指南》和《国家基本公共卫生服务规范（第三版）》的分级标准编写，结果只供参考，<b>不能代替医生诊断</b>。<br>你填的数据只保存在当前浏览器里，不会上传。<span class="no-print">如有不适请及时就医，紧急情况拨打 120。</span></p>
+</main>
+
+<script>
+(function () {
+  "use strict";
+  var $ = function (id) { return document.getElementById(id); };
+  var store = {
+    get: function (k, d) { try { var v = localStorage.getItem("hs_" + k); return v ? JSON.parse(v) : d; } catch (e) { return d; } },
+    set: function (k, v) { try { localStorage.setItem("hs_" + k, JSON.stringify(v)); } catch (e) {} }
+  };
+  var num = function (id) { var v = parseFloat($(id).value); return isNaN(v) ? null : v; };
+  var esc = function (s) { return String(s).replace(/[&<>"']/g, function (c) { return { "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]; }); };
+  var pad = function (n) { return (n < 10 ? "0" : "") + n; };
+  var fmtDate = function (d) { return d.getFullYear() + "-" + pad(d.getMonth() + 1) + "-" + pad(d.getDate()); };
+  var fmtTime = function (t) { var d = new Date(t); return pad(d.getMonth() + 1) + "-" + pad(d.getDate()) + " " + pad(d.getHours()) + ":" + pad(d.getMinutes()); };
+
+  function showResult(el, r, extra) {
+    el.className = "result show lv-" + r.cls;
+    el.innerHTML = '<div class="lv">' + esc(r.level) + "</div><p>" + r.advice + "</p>" + (extra || "");
+  }
+  function scaleHtml(colors, labels, pct) {
+    return '<div class="scale">' + colors.map(function (c) { return '<span style="background:' + c + '"></span>'; }).join("") +
+      '<i class="pin" style="left:' + Math.max(0, Math.min(100, pct)) + '%"></i></div><div class="scale-labels">' +
+      labels.map(function (l) { return "<span>" + l + "</span>"; }).join("") + "</div>";
+  }
+
+  /* ---------- 切换 ---------- */
+  var tabs = document.querySelectorAll(".tabs button");
+  function openTab(name) {
+    tabs.forEach(function (b) { b.classList.toggle("active", b.dataset.tab === name); });
+    document.querySelectorAll(".panel").forEach(function (p) { p.classList.toggle("active", p.id === "p-" + name); });
+    if (name === "report") renderReport();
+    if (history.replaceState) history.replaceState(null, "", "#" + name);
+  }
+  tabs.forEach(function (b) { b.addEventListener("click", function () { openTab(b.dataset.tab); }); });
+
+  /* ---------- 血压 ---------- */
+  // 中国高血压防治指南（2018 年修订版）：收缩压、舒张压分属不同级别时，以较高的级别为准
+  var BP_LEVELS = [
+    { level: "正常血压", cls: "ok", advice: "继续保持。成年人最好每年至少量一次血压。" },
+    { level: "正常高值", cls: "warn", advice: "血压偏高，还不算高血压。少吃盐（每天不超过 5 克）、控制体重、多运动、戒烟限酒，3~6 个月后再复查。" },
+    { level: "1 级高血压（轻度）", cls: "high", advice: "建议找家庭医生在不同的日子再测 2~3 次，确认是不是真的高血压，并评估心血管风险，需要的话开始治疗。" },
+    { level: "2 级高血压（中度）", cls: "danger", advice: "血压明显偏高，请尽快联系家庭医生，通常需要吃药治疗。" },
+    { level: "3 级高血压（重度）", cls: "danger", advice: "血压很高。安静休息 5 分钟后再测一次，如果还是这么高，请当天就医；如果同时胸痛、剧烈头痛、说话不清、肢体无力，请立即拨打 120。" }
+  ];
+  function bpGrade(s, d) {
+    var gs = s < 120 ? 0 : s < 140 ? 1 : s < 160 ? 2 : s < 180 ? 3 : 4;
+    var gd = d < 80 ? 0 : d < 90 ? 1 : d < 100 ? 2 : d < 110 ? 3 : 4;
+    var g = Math.max(gs, gd);
+    var r = Object.assign({ grade: g }, BP_LEVELS[g]);
+    if (g >= 2 && s >= 140 && d < 90) r.isolated = true;
+    return r;
+  }
+  function bpValid(s, d) { return s && d && s > d && s >= 50 && s <= 300 && d >= 30 && d <= 200; }
+
+  $("bp-calc").addEventListener("click", function () {
+    var s = num("bp-s"), d = num("bp-d"), hr = num("bp-hr");
+    if (!bpValid(s, d)) { alert("请输入正确的血压：收缩压（高压）要比舒张压（低压）高。"); return; }
+    var r = bpGrade(s, d), extra = "";
+    if (r.isolated) extra += "<p>属于<b>单纯收缩期高血压</b>（只有高压高），老年人比较常见。</p>";
+    if (s < 90 || d < 60) extra += "<p>血压偏低。如果有头晕、眼前发黑、乏力，请联系医生。</p>";
+    if (hr !== null && (hr < 50 || hr > 100)) extra += "<p>心率 " + hr + " 次/分，不在正常范围（60~100 次/分）内，建议跟医生说一下。</p>";
+    extra += scaleHtml(["#27ae60", "#f1c40f", "#e67e22", "#e74c3c", "#8e2a2a"], ["正常", "正常高值", "1级", "2级", "3级"], (r.grade + 0.5) * 20);
+    showResult($("bp-res"), r, extra);
+    store.set("last_bp", { s: s, d: d, hr: hr, t: Date.now() });
+  });
+
+  function bpLog() { return store.get("bp_log", []); }
+  $("bp-save").addEventListener("click", function () {
+    var s = num("bp-s"), d = num("bp-d"), hr = num("bp-hr");
+    if (!bpValid(s, d)) { alert("请先填写正确的血压。"); return; }
+    var log = bpLog(); log.push({ s: s, d: d, hr: hr, t: Date.now() });
+    store.set("bp_log", log.slice(-200));
+    $("bp-calc").click(); renderBpLog();
+  });
+  $("bp-clear").addEventListener("click", function () {
+    if (confirm("确定要清空所有血压记录吗？")) { store.set("bp_log", []); renderBpLog(); }
+  });
+  function bpAvg(days) {
+    var since = Date.now() - days * 864e5;
+    var rows = bpLog().filter(function (r) { return r.t >= since; });
+    if (!rows.length) return null;
+    var sum = rows.reduce(function (a, r) { return { s: a.s + r.s, d: a.d + r.d }; }, { s: 0, d: 0 });
+    return { s: Math.round(sum.s / rows.length), d: Math.round(sum.d / rows.length), n: rows.length };
+  }
+  function renderBpLog() {
+    var log = bpLog(), tb = $("bp-table").querySelector("tbody");
+    tb.innerHTML = log.slice().reverse().map(function (r, i) {
+      var g = bpGrade(r.s, r.d);
+      return "<tr><td>" + fmtTime(r.t) + "</td><td><b>" + r.s + "/" + r.d + "</b></td><td>" + (r.hr || "-") + '</td><td style="color:var(--' + g.cls + ')">' + g.level.replace(/（.*）/, "") +
+        '</td><td class="no-print"><button class="btn ghost small" data-del="' + (log.length - 1 - i) + '">删除</button></td></tr>';
+    }).join("") || '<tr><td colspan="5" class="note">还没有记录。填好血压后点“记一笔”就会存下来。</td></tr>';
+    tb.querySelectorAll("[data-del]").forEach(function (b) {
+      b.addEventListener("click", function () { var l = bpLog(); l.splice(+b.dataset.del, 1); store.set("bp_log", l); renderBpLog(); });
+    });
+    var a = bpAvg(7), html = "";
+    if (a) {
+      var hyper = a.s >= 135 || a.d >= 85;
+      html = '<div class="result show lv-' + (hyper ? "high" : "ok") + '"><div class="lv">近 7 天平均 ' + a.s + "/" + a.d + " mmHg</div><p>共 " + a.n + " 次记录。" +
+        (hyper ? "超过了家庭自测血压的高血压标准（135/85），请把这份记录拿给家庭医生看。" : "在家庭自测血压的正常范围内（低于 135/85）。") +
+        (a.n < 12 ? "<br>记录还不多，建议连续测满 7 天，每天早晚各 2 次，结果会更准。" : "") + "</p></div>";
+    }
+    $("bp-summary").innerHTML = html;
+    drawBpChart(log.slice(-30));
+  }
+  function drawBpChart(rows) {
+    var svg = $("bp-chart"), W = 600, H = 220, L = 36, R = 10, T = 12, B = 26;
+    if (rows.length < 2) { svg.style.display = "none"; return; }
+    svg.style.display = "";
+    var min = 50, max = 200, y = function (v) { return T + (H - T - B) * (1 - (Math.max(min, Math.min(max, v)) - min) / (max - min)); };
+    var x = function (i) { return L + (W - L - R) * (i / (rows.length - 1)); };
+    var out = "";
+    [60, 90, 120, 140, 160, 180].forEach(function (v) {
+      out += '<line x1="' + L + '" x2="' + (W - R) + '" y1="' + y(v) + '" y2="' + y(v) + '" stroke="#e3eaf0"/><text x="' + (L - 6) + '" y="' + (y(v) + 4) + '" font-size="11" text-anchor="end" fill="#7f8c8d">' + v + "</text>";
+    });
+    out += '<line x1="' + L + '" x2="' + (W - R) + '" y1="' + y(135) + '" y2="' + y(135) + '" stroke="#e67e22" stroke-dasharray="4 4"/><text x="' + (W - R) + '" y="' + (y(135) - 4) + '" font-size="11" text-anchor="end" fill="#e67e22">135</text>';
+    out += '<line x1="' + L + '" x2="' + (W - R) + '" y1="' + y(85) + '" y2="' + y(85) + '" stroke="#e67e22" stroke-dasharray="4 4"/><text x="' + (W - R) + '" y="' + (y(85) - 4) + '" font-size="11" text-anchor="end" fill="#e67e22">85</text>';
+    [["s", "#e74c3c", "高压"], ["d", "#49b1f5", "低压"]].forEach(function (k) {
+      out += '<polyline fill="none" stroke="' + k[1] + '" stroke-width="2.5" points="' + rows.map(function (r, i) { return x(i) + "," + y(r[k[0]]); }).join(" ") + '"/>';
+      rows.forEach(function (r, i) { out += '<circle cx="' + x(i) + '" cy="' + y(r[k[0]]) + '" r="3" fill="' + k[1] + '"><title>' + fmtTime(r.t) + " " + r.s + "/" + r.d + "</title></circle>"; });
+    });
+    out += '<text x="' + L + '" y="' + (H - 6) + '" font-size="11" fill="#7f8c8d">' + fmtTime(rows[0].t) + '</text><text x="' + (W - R) + '" y="' + (H - 6) + '" font-size="11" text-anchor="end" fill="#7f8c8d">' + fmtTime(rows[rows.length - 1].t) + "</text>";
+    out += '<text x="' + (L + 6) + '" y="' + (T + 10) + '" font-size="12" fill="#e74c3c">● 高压</text><text x="' + (L + 60) + '" y="' + (T + 10) + '" font-size="12" fill="#49b1f5">● 低压</text>';
+    svg.innerHTML = out;
+  }
+
+  /* ---------- 血糖 ---------- */
+  function gluGrade(type, v, sym) {
+    if (v < 3.9) return { level: "低血糖", cls: "danger", advice: "马上吃 15~20 克含糖食物（比如半杯果汁、3~4 块方糖），15 分钟后再测一次。如果意识不清，请立即拨打 120。" };
+    if (v >= 16.7) return { level: "血糖非常高", cls: "danger", advice: "血糖很高。如果口渴得厉害、恶心呕吐、呼吸有烂苹果味、犯困，请立即就医。" };
+    if (type === "fasting") {
+      if (v < 6.1) return { level: "空腹血糖正常", cls: "ok", advice: "继续保持。40 岁以上或者有糖尿病高危因素的人，建议每年查一次。" };
+      if (v < 7.0) return { level: "空腹血糖受损（糖尿病前期）", cls: "warn", advice: "已经是糖尿病前期了。建议到医院做口服葡萄糖耐量试验；控制饮食、多运动，体重减掉 5%~10% 能明显降低以后得糖尿病的风险。" };
+      return { level: "达到糖尿病诊断标准", cls: "high", advice: "空腹血糖 ≥7.0 mmol/L。如果没有“三多一少”症状，需要换一天再查一次确认。请联系家庭医生进一步检查。" };
+    }
+    if (type === "post2h") {
+      if (v < 7.8) return { level: "餐后 2 小时血糖正常", cls: "ok", advice: "继续保持。" };
+      if (v < 11.1) return { level: "糖耐量减低（糖尿病前期）", cls: "warn", advice: "已经是糖尿病前期了。建议调整饮食结构、规律运动，并找家庭医生定期复查。" };
+      return { level: "达到糖尿病诊断标准", cls: "high", advice: "餐后 2 小时血糖 ≥11.1 mmol/L。没有症状的话需要换一天再查一次确认，请联系家庭医生。" };
+    }
+    if (v >= 11.1 && sym) return { level: "高度怀疑糖尿病", cls: "high", advice: "随机血糖 ≥11.1 mmol/L，又有典型症状，已经达到糖尿病诊断标准，请尽快到医院确诊。" };
+    if (v >= 11.1) return { level: "随机血糖偏高", cls: "warn", advice: "随机血糖 ≥11.1 mmol/L。建议去医院查空腹血糖和糖化血红蛋白。" };
+    return { level: "随机血糖未见异常", cls: "ok", advice: "随机血糖只能大概看看，想准确判断请测空腹血糖或餐后 2 小时血糖。" };
+  }
+  $("glu-calc").addEventListener("click", function () {
+    var v = num("glu-v"), type = $("glu-type").value, sym = $("glu-sym").checked;
+    if (!v || v <= 0 || v > 40) { alert("请输入正确的血糖值（单位 mmol/L）。如果你的数值是 mg/dL，除以 18 就是 mmol/L。"); return; }
+    var r = gluGrade(type, v, sym);
+    showResult($("glu-res"), r);
+    store.set("last_glu", { type: type, v: v, t: Date.now() });
+  });
+
+  /* ---------- BMI ---------- */
+  $("bmi-calc").addEventListener("click", function () {
+    var h = num("bmi-h"), w = num("bmi-w"), waist = num("bmi-waist"), sex = $("bmi-sex").value;
+    if (!h || !w || h < 80 || h > 250 || w < 20 || w > 300) { alert("请输入正确的身高（cm）和体重（kg）。"); return; }
+    var bmi = w / Math.pow(h / 100, 2), b = Math.round(bmi * 10) / 10, r;
+    if (bmi < 18.5) r = { level: "偏瘦", cls: "warn", advice: "体重偏轻。注意营养要均衡，多吃点优质蛋白；如果体重莫名下降，请就医检查。" };
+    else if (bmi < 24) r = { level: "体重正常", cls: "ok", advice: "体重正常，继续保持。" };
+    else if (bmi < 28) r = { level: "超重", cls: "warn", advice: "体重超了。建议每餐七八分饱，每周运动至少 150 分钟（比如快走）。" };
+    else r = { level: "肥胖", cls: "high", advice: "已经肥胖了，得高血压、糖尿病、脂肪肝的风险会明显升高。建议找家庭医生制定减重计划。" };
+    var lo = Math.round(18.5 * Math.pow(h / 100, 2) * 10) / 10, hi = Math.round(23.9 * Math.pow(h / 100, 2) * 10) / 10;
+    var extra = "<p>BMI = <b>" + b + "</b>。按你的身高，正常体重范围是 <b>" + lo + " ~ " + hi + " kg</b>。</p>";
+    if (waist) {
+      var cut = sex === "m" ? 90 : 85;
+      extra += waist >= cut
+        ? "<p>腰围 " + waist + " cm，超过 " + cut + " cm，属于<b>中心性肥胖</b>（肚子上的脂肪多），心脑血管病风险更高。</p>"
+        : "<p>腰围 " + waist + " cm，在正常范围（" + (sex === "m" ? "男性" : "女性") + "应低于 " + cut + " cm）。</p>";
+      if (waist >= cut && r.cls === "ok") r = Object.assign({}, r, { cls: "warn", level: "体重正常，但腰围超标" });
+    }
+    extra += scaleHtml(["#f1c40f", "#27ae60", "#e67e22", "#e74c3c"], ["偏瘦 &lt;18.5", "正常", "超重 24", "肥胖 28"], (Math.max(14, Math.min(34, bmi)) - 14) / 20 * 100);
+    showResult($("bmi-res"), r, extra);
+    store.set("last_bmi", { bmi: b, h: h, w: w, waist: waist, sex: sex, level: r.level, t: Date.now() });
+  });
+
+  /* ---------- 随访提醒卡 ---------- */
+  var F_TYPES = { htn: ["高血压随访", 3], dm: ["糖尿病随访", 3], both: ["高血压 + 糖尿病随访", 3], elder: ["老年人健康体检", 12] };
+  ["f-name", "f-type", "f-last", "f-doc", "f-tel"].forEach(function (id) {
+    var saved = store.get("follow", {});
+    if (saved[id]) $(id).value = saved[id];
+    $(id).addEventListener("change", function () { var s = store.get("follow", {}); s[id] = $(id).value; store.set("follow", s); });
+  });
+  function addMonths(d, m) {
+    var r = new Date(d.getFullYear(), d.getMonth() + m, d.getDate());
+    if (r.getDate() !== d.getDate()) r.setDate(0);
+    return r;
+  }
+  function followInfo() {
+    var last = $("f-last").value;
+    if (!last) { alert("请先选上次随访 / 体检的日期。"); return null; }
+    var t = F_TYPES[$("f-type").value], p = last.split("-"), ld = new Date(+p[0], p[1] - 1, +p[2]);
+    var count = t[1] === 3 ? 4 : 1, dates = [];
+    for (var i = 1; i <= count; i++) dates.push(addMonths(ld, t[1] * i));
+    var today = new Date(); today.setHours(0, 0, 0, 0);
+    return { name: $("f-name").value.trim(), label: t[0], last: ld, dates: dates, doc: $("f-doc").value.trim(), tel: $("f-tel").value.trim(),
+      days: Math.round((dates[0] - today) / 864e5) };
+  }
+  function renderCard(f) {
+    var due = f.days < 0 ? '<span style="color:var(--danger)">已经过期 ' + (-f.days) + " 天，请尽快联系医生</span>"
+      : f.days === 0 ? '<span style="color:var(--warn)">就是今天</span>' : "还有 <b>" + f.days + "</b> 天";
+    $("f-card").innerHTML = '<div class="card"><h3>' + esc(f.label) + "提醒卡</h3>" +
+      (f.name ? '<div class="row"><span>姓名</span><b>' + esc(f.name) + "</b></div>" : "") +
+      '<div class="row"><span>上次日期</span><b>' + fmtDate(f.last) + "</b></div>" +
+      '<div class="big">下次：' + fmtDate(f.dates[0]) + '</div><p style="text-align:center;margin:0 0 8px">' + due + "</p>" +
+      (f.dates.length > 1 ? '<div class="row"><span>后面几次</span><b>' + f.dates.slice(1).map(fmtDate).join("、") + "</b></div>" : "") +
+      (f.doc ? '<div class="row"><span>签约医生</span><b>' + esc(f.doc) + "</b></div>" : "") +
+      (f.tel ? '<div class="row"><span>联系电话</span><b><a href="tel:' + esc(f.tel) + '">' + esc(f.tel) + "</a></b></div>" : "") +
+      '<p class="note" style="margin:10px 0 0">随访时请带上：这张卡、正在吃的药（或药盒）、家庭血压/血糖记录。体检当天早上要空腹。</p>' +
+      '<p class="note" style="margin:4px 0 0;text-align:center">永丰镇家庭医生服务站</p></div>';
+  }
+  $("f-make").addEventListener("click", function () { var f = followInfo(); if (f) renderCard(f); });
+  $("f-print").addEventListener("click", function () {
+    var f = followInfo(); if (!f) return; renderCard(f);
+    document.body.classList.add("print-card"); window.print();
+    setTimeout(function () { document.body.classList.remove("print-card"); }, 500);
+  });
+  $("f-ics").addEventListener("click", function () {
+    var f = followInfo(); if (!f) return; renderCard(f);
+    var ymd = function (d) { return d.getFullYear() + pad(d.getMonth() + 1) + pad(d.getDate()); };
+    var icsEsc = function (s) { return s.replace(/([,;\\])/g, "\\$1"); };
+    var stamp = new Date().toISOString().replace(/[-:]/g, "").replace(/\.\d+/, "");
+    var lines = ["BEGIN:VCALENDAR", "VERSION:2.0", "PRODID:-//yongfeng-family-doctor//health-selfcheck//CN", "CALSCALE:GREGORIAN"];
+    f.dates.forEach(function (d, i) {
+      var end = new Date(d); end.setDate(end.getDate() + 1);
+      lines.push("BEGIN:VEVENT", "UID:" + ymd(d) + "-" + i + "-" + Math.random().toString(36).slice(2) + "@health-selfcheck", "DTSTAMP:" + stamp,
+        "DTSTART;VALUE=DATE:" + ymd(d), "DTEND;VALUE=DATE:" + ymd(end),
+        "SUMMARY:" + icsEsc((f.name ? f.name + " " : "") + f.label),
+        "DESCRIPTION:" + icsEsc("签约医生：" + (f.doc || "-") + "  电话：" + (f.tel || "-")) + "\\n" + icsEsc("请带上药盒和家庭血压/血糖记录"),
+        "BEGIN:VALARM", "TRIGGER:-P2D", "ACTION:DISPLAY", "DESCRIPTION:" + icsEsc(f.label + "还有 2 天"), "END:VALARM", "END:VEVENT");
+    });
+    lines.push("END:VCALENDAR");
+    var blob = new Blob([lines.join("\r\n")], { type: "text/calendar;charset=utf-8" });
+    var a = document.createElement("a"); a.href = URL.createObjectURL(blob); a.download = "随访提醒.ics";
+    document.body.appendChild(a); a.click(); setTimeout(function () { URL.revokeObjectURL(a.href); a.remove(); }, 1000);
+  });
+
+  /* ---------- 汇总 ---------- */
+  function renderReport() {
+    var rows = [], bp = store.get("last_bp"), glu = store.get("last_glu"), bmi = store.get("last_bmi"), avg = bpAvg(7), fl = store.get("follow", {});
+    var date = function (t) { return fmtDate(new Date(t)); };
+    var GLU_NAME = { fasting: "空腹", post2h: "餐后 2 小时", random: "随机" };
+    if (bp) rows.push(["血压（最近一次）", bp.s + "/" + bp.d + " mmHg" + (bp.hr ? "，心率 " + bp.hr : ""), bpGrade(bp.s, bp.d).level, date(bp.t)]);
+    if (avg) rows.push(["家庭血压 7 天平均", avg.s + "/" + avg.d + " mmHg（" + avg.n + " 次）", avg.s >= 135 || avg.d >= 85 ? "超过 135/85" : "正常范围", "近 7 天"]);
+    if (glu) rows.push(["血糖（" + GLU_NAME[glu.type] + "）", glu.v + " mmol/L", gluGrade(glu.type, glu.v, false).level, date(glu.t)]);
+    if (bmi) rows.push(["BMI", bmi.bmi + "（" + bmi.h + " cm / " + bmi.w + " kg" + (bmi.waist ? "，腰围 " + bmi.waist + " cm" : "") + "）", bmi.level, date(bmi.t)]);
+    var html = rows.length
+      ? "<table><thead><tr><th>项目</th><th>数值</th><th>结果</th><th>日期</th></tr></thead><tbody>" +
+        rows.map(function (r) { return "<tr><td>" + r.map(esc).join("</td><td>") + "</td></tr>"; }).join("") + "</tbody></table>"
+      : '<p class="note">还没有数据。先去前面几页测一测，结果会自动汇总到这里。</p>';
+    if (fl["f-last"]) {
+      var f = followInfo();
+      if (f) html += "<h3>随访</h3><p>" + esc(f.label) + "：上次 " + fmtDate(f.last) + "，下次 <b>" + fmtDate(f.dates[0]) + "</b>" + (f.doc ? "，签约医生 " + esc(f.doc) : "") + (f.tel ? "（" + esc(f.tel) + "）" : "") + "</p>";
+    }
+    var name = fl["f-name"] ? esc(fl["f-name"]) + " 的" : "";
+    $("report-body").innerHTML = html;
+    $("print-report").innerHTML = "<h2 style=\"text-align:center\">" + name + "健康自测汇总</h2><p class=\"note\" style=\"text-align:center\">打印日期 " + fmtDate(new Date()) + " · 永丰镇家庭医生服务站</p>" + html +
+      (bpLog().length ? "<h3>家庭血压记录（最近 30 次）</h3>" + $("bp-chart").outerHTML.replace('id="bp-chart"', "") : "");
+  }
+  $("r-print").addEventListener("click", function () { renderReport(); window.print(); });
+
+  renderBpLog();
+  var h = location.hash.slice(1);
+  if (h && document.getElementById("p-" + h)) openTab(h);
+})();
+</script>
+</body>
+</html>
