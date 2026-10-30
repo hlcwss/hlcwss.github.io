@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
 <title>居民健康自测 | 永丰镇家庭医生服务站</title>
-<meta name="description" content="血压分级、血糖判断、BMI 与腰围、慢病随访提醒卡。纯网页计算，数据只保存在你的手机或电脑上。">
+<meta name="description" content="血压分级、血糖判断、BMI 与腰围、糖尿病风险自评、血脂自查、脑卒中风险自查、慢病随访提醒卡。纯网页计算，数据只保存在你的手机或电脑上。">
 <link rel="shortcut icon" href="/img/favicon.png">
 <style>
 :root{--main:#49b1f5;--main-d:#2f8fd4;--bg:#f4f8fb;--card:#fff;--text:#2c3e50;--muted:#7f8c8d;--line:#e3eaf0;
@@ -74,13 +74,16 @@ th{color:var(--muted);font-weight:normal}
 <header>
   <a class="back" href="/">&larr; 返回主页</a>
   <h1>居民健康自测</h1>
-  <p>血压 · 血糖 · 体重 · 随访提醒，数据只存在你自己的手机或电脑上</p>
+  <p>血压 · 血糖 · 体重 · 糖尿病风险 · 血脂 · 中风风险 · 随访提醒，数据只存在你自己的手机或电脑上</p>
 </header>
 <main>
   <nav class="tabs" role="tablist">
     <button class="active" data-tab="bp">血压分级</button>
     <button data-tab="glu">血糖判断</button>
     <button data-tab="bmi">BMI 与腰围</button>
+    <button data-tab="dmrisk">糖尿病风险</button>
+    <button data-tab="lipid">血脂自查</button>
+    <button data-tab="stroke">中风风险</button>
     <button data-tab="follow">随访提醒卡</button>
     <button data-tab="report">汇总报告</button>
   </nav>
@@ -139,6 +142,93 @@ th{color:var(--muted);font-weight:normal}
     <div class="result" id="bmi-res"></div>
   </section>
 
+
+  <!-- 糖尿病风险 -->
+  <section class="panel" id="p-dmrisk">
+    <h2>糖尿病风险自评</h2>
+    <p class="note">用的是国家基层糖尿病防治推荐的《中国糖尿病风险评分表》：6 项打分，总分 0~51 分，<b>≥25 分就是高风险</b>。不知道 BMI 是多少的，先到“BMI 与腰围”页算一下再回来。</p>
+    <div class="grid">
+      <label>年龄
+        <select id="dm-age">
+          <option value="0">20~24 岁（0 分）</option><option value="4">25~34 岁（4 分）</option>
+          <option value="8">35~39 岁（8 分）</option><option value="11">40~44 岁（11 分）</option>
+          <option value="12">45~49 岁（12 分）</option><option value="13">50~54 岁（13 分）</option>
+          <option value="15">55~59 岁（15 分）</option><option value="16">60~64 岁（16 分）</option>
+          <option value="18">65~74 岁（18 分）</option><option value="18">75 岁以上（18 分）</option>
+        </select>
+      </label>
+      <label>性别
+        <select id="dm-sex"><option value="0">女（0 分）</option><option value="2">男（2 分）</option></select>
+      </label>
+      <label>BMI（体质指数）
+        <select id="dm-bmi">
+          <option value="0">&lt;22.0（0 分）</option><option value="1">22.0~23.9（1 分）</option>
+          <option value="3">24.0~29.9（3 分）</option><option value="5">≥30.0（5 分）</option>
+        </select>
+      </label>
+      <label>腰围
+        <select id="dm-waist">
+          <option value="0">男 &lt;75，女 &lt;70 cm（0 分）</option><option value="3">男 75~79.9，女 70~74.9 cm（3 分）</option>
+          <option value="5">男 80~84.9，女 75~79.9 cm（5 分）</option><option value="7">男 85~89.9，女 80~84.9 cm（7 分）</option>
+          <option value="8">男 90~94.9，女 85~89.9 cm（8 分）</option><option value="10">男 ≥95，女 ≥90 cm（10 分）</option>
+        </select>
+      </label>
+      <label>收缩压（高压）
+        <select id="dm-sbp">
+          <option value="0">&lt;110 mmHg（0 分）</option><option value="1">110~119（1 分）</option>
+          <option value="3">120~129（3 分）</option><option value="6">130~139（6 分）</option>
+          <option value="7">140~149（7 分）</option><option value="8">150~159（8 分）</option>
+          <option value="10">≥160（10 分）</option>
+        </select>
+      </label>
+      <label>糖尿病家族史
+        <select id="dm-fam"><option value="0">无（0 分）</option><option value="6">有：父母、兄弟姐妹或子女患糖尿病（6 分）</option></select>
+      </label>
+    </div>
+    <div class="btns"><button class="btn" id="dm-calc">算总分</button></div>
+    <div class="result" id="dm-res"></div>
+    <p class="note">评分是筛查工具，不是诊断：分数高不等于已经得病，分数低也不能完全排除。≥25 分的人，建议到卫生院做口服葡萄糖耐量试验（OGTT）确认。</p>
+  </section>
+
+  <!-- 血脂 -->
+  <section class="panel" id="p-lipid">
+    <h2>血脂自查</h2>
+    <p class="note">把体检报告上的血脂四项填进来（单位都是 mmol/L），没测过的可以空着。参考范围是一般人群的标准；已经得过心梗、脑梗或装过支架的人，低密度脂蛋白（LDL-C）要求比这严得多，以医生给你定的目标为准。</p>
+    <div class="grid">
+      <label>总胆固醇 TC<input id="lip-tc" type="number" inputmode="decimal" step="0.01" min="0.5" max="30" placeholder="如 4.8"></label>
+      <label>甘油三酯 TG<input id="lip-tg" type="number" inputmode="decimal" step="0.01" min="0.1" max="30" placeholder="如 1.5"></label>
+      <label>低密度脂蛋白 LDL-C（坏胆固醇）<input id="lip-ldl" type="number" inputmode="decimal" step="0.01" min="0.1" max="20" placeholder="如 2.9"></label>
+      <label>高密度脂蛋白 HDL-C（好胆固醇）<input id="lip-hdl" type="number" inputmode="decimal" step="0.01" min="0.1" max="10" placeholder="如 1.3"></label>
+    </div>
+    <div class="btns"><button class="btn" id="lip-calc">判断</button></div>
+    <div class="result" id="lip-res"></div>
+    <p class="note">血脂高不高不能只看箭头：医生会把血脂和你的血压、血糖、年龄、吸烟等一起算总账，决定要不要吃药、吃哪种。</p>
+  </section>
+
+  <!-- 中风风险 -->
+  <section class="panel" id="p-stroke">
+    <h2>脑卒中（中风）风险自查</h2>
+    <p class="note">按国家脑卒中筛查的办法：下面 8 项危险因素里占了 <b>3 项及以上</b>，就属于高危人群。逐项对照自己，把符合的勾上。</p>
+    <div>
+      <label><input type="checkbox" class="stk-f" style="width:auto"> 高血压：血压 ≥140/90 mmHg，或正在吃降压药</label>
+      <label><input type="checkbox" class="stk-f" style="width:auto"> 糖尿病：已确诊，或血糖长期偏高</label>
+      <label><input type="checkbox" class="stk-f" style="width:auto"> 血脂异常：血脂高，或正在吃降脂药</label>
+      <label><input type="checkbox" class="stk-f" style="width:auto"> 吸烟：现在还在吸</label>
+      <label><input type="checkbox" class="stk-f" style="width:auto"> 房颤或心律不齐：心跳忽快忽慢、漏跳，医生说过房颤</label>
+      <label><input type="checkbox" class="stk-f" style="width:auto"> 超重或肥胖：BMI ≥24，或腰围男 ≥90、女 ≥85 cm</label>
+      <label><input type="checkbox" class="stk-f" style="width:auto"> 很少运动：每周运动少于 3 次、每次不到 30 分钟</label>
+      <label><input type="checkbox" class="stk-f" style="width:auto"> 家族史：父母或兄弟姐妹得过中风</label>
+    </div>
+    <h3>还有两项更要紧，有的话一定勾上</h3>
+    <div>
+      <label><input type="checkbox" class="stk-h" style="width:auto"> 以前得过脑中风（脑梗或脑出血）</label>
+      <label><input type="checkbox" class="stk-h" style="width:auto"> 有过“小中风”：突然一侧胳膊腿没劲、说话不清，几分钟到 1 小时又自己恢复了</label>
+    </div>
+    <div class="btns"><button class="btn" id="stk-calc">看看我的风险</button></div>
+    <div class="result" id="stk-res"></div>
+    <p class="note">记住“中风 120”：1 看脸——笑时嘴角歪不歪；2 查胳膊——双臂平举，一侧往下掉；0 聆听——说话含糊听不清。占任何一条，立刻拨打 120，越早送到医院越好。</p>
+  </section>
+
   <!-- 随访提醒卡 -->
   <section class="panel" id="p-follow">
     <h2>慢病随访提醒卡</h2>
@@ -175,7 +265,7 @@ th{color:var(--muted);font-weight:normal}
 
   <section class="report" id="print-report"></section>
 
-  <p class="disclaimer">本工具依据《中国高血压防治指南（2018 年修订版）》《中国 2 型糖尿病防治指南》《中国成人超重和肥胖症预防控制指南》和《国家基本公共卫生服务规范（第三版）》的分级标准编写，结果只供参考，<b>不能代替医生诊断</b>。<br>你填的数据只保存在当前浏览器里，不会上传。<span class="no-print">如有不适请及时就医，紧急情况拨打 120。</span></p>
+  <p class="disclaimer">本工具依据《中国高血压防治指南（2018 年修订版）》《中国 2 型糖尿病防治指南》《中国成人超重和肥胖症预防控制指南》《中国成人血脂异常防治指南》和《国家基本公共卫生服务规范（第三版）》的分级标准，以及中国糖尿病风险评分表、脑卒中高危人群筛查标准编写，结果只供参考，<b>不能代替医生诊断</b>。<br>你填的数据只保存在当前浏览器里，不会上传。<span class="no-print">如有不适请及时就医，紧急情况拨打 120。</span></p>
 </main>
 
 <script>
@@ -412,6 +502,54 @@ th{color:var(--muted);font-weight:normal}
     document.body.appendChild(a); a.click(); setTimeout(function () { URL.revokeObjectURL(a.href); a.remove(); }, 1000);
   });
 
+  /* ---------- 糖尿病风险 ---------- */
+  $("dm-calc").addEventListener("click", function () {
+    var ids = ["dm-age", "dm-sex", "dm-bmi", "dm-waist", "dm-sbp", "dm-fam"];
+    var score = ids.reduce(function (a, id) { return a + parseInt($(id).value, 10); }, 0);
+    var r = score >= 25
+      ? { level: "总分 " + score + " 分：糖尿病高风险", cls: "danger", advice: "你的得分到了高风险线（≥25 分）。建议尽快到卫生院查一次空腹血糖，必要时做口服葡萄糖耐量试验（OGTT）——很多人血糖已经高了自己还不知道，早发现就能早干预。同时控制体重、少喝含糖饮料、每天活动半小时。" }
+      : { level: "总分 " + score + " 分：糖尿病风险较低", cls: "ok", advice: "还没到高风险线（25 分）。继续保持，每年体检时查一次空腹血糖；分项里要是有单项得分高的（比如腰围、血压），也值得针对性地改一改。" };
+    showResult($("dm-res"), r, scaleHtml(["#27ae60", "#e74c3c"], ["低风险 0~24 分", "高风险 25~51 分"], score / 51 * 100));
+    store.set("last_dmrisk", { score: score, t: Date.now() });
+  });
+
+  /* ---------- 血脂 ---------- */
+  $("lip-calc").addEventListener("click", function () {
+    var items = [
+      { name: "总胆固醇 TC", id: "lip-tc", ref: "合适 <5.2", test: function (v) { return v < 5.2 ? ["合适", 0] : v < 6.2 ? ["边缘升高", 1] : ["升高", 2]; } },
+      { name: "甘油三酯 TG", id: "lip-tg", ref: "合适 <1.7", test: function (v) { return v < 1.7 ? ["合适", 0] : v < 2.3 ? ["边缘升高", 1] : ["升高", 2]; } },
+      { name: "低密度脂蛋白 LDL-C", id: "lip-ldl", ref: "合适 <3.4", test: function (v) { return v < 3.4 ? ["合适", 0] : v < 4.1 ? ["边缘升高", 1] : ["升高", 2]; } },
+      { name: "高密度脂蛋白 HDL-C", id: "lip-hdl", ref: "正常 ≥1.0", test: function (v) { return v >= 1.0 ? ["正常", 0] : ["偏低", 1]; } }
+    ];
+    var rows = [], worst = 0;
+    items.forEach(function (it) {
+      var v = num(it.id); if (v === null) return;
+      var j = it.test(v); worst = Math.max(worst, j[1]);
+      rows.push("<tr><td>" + it.name + "</td><td>" + v + "</td><td>" + it.ref + "</td><td>" + j[0] + "</td></tr>");
+    });
+    if (!rows.length) { alert("请至少填一项血脂数值。"); return; }
+    var r = worst === 2
+      ? { level: "有指标已经升高", cls: "danger", advice: "把体检报告带给家庭医生看，结合你的血压、血糖、年龄一起评估心脑血管风险，该吃药时不要拖。已经在吃他汀等降脂药的，不要自己停药或减量。" }
+      : worst === 1
+      ? { level: "有指标在边缘或偏低", cls: "warn", advice: "先从生活方式改起：少吃油炸食品和肥肉、少喝酒，多吃粗粮蔬菜，每周至少 150 分钟快走一类的运动，3~6 个月后复查血脂。" }
+      : { level: "填入的指标都在合适范围", cls: "ok", advice: "继续保持，每年体检复查一次血脂。" };
+    showResult($("lip-res"), r, "<table><thead><tr><th>项目</th><th>你的值</th><th>参考</th><th>判断</th></tr></thead><tbody>" + rows.join("") + "</tbody></table>");
+    store.set("last_lipid", { level: r.level, t: Date.now() });
+  });
+
+  /* ---------- 中风风险 ---------- */
+  $("stk-calc").addEventListener("click", function () {
+    var n = document.querySelectorAll(".stk-f:checked").length;
+    var hist = document.querySelectorAll(".stk-h:checked").length;
+    var r;
+    if (hist > 0) r = { level: "高危：有中风或小中风病史", cls: "danger", advice: "有过中风或小中风，就属于复发高危人群。请按医生方案长期预防（抗血小板、降压、降脂等药物不要自行停），定期到卫生院随访；再出现脸歪、胳膊无力、说话不清，立即拨打 120。" };
+    else if (n >= 3) r = { level: "高危：危险因素有 " + n + " 项", cls: "danger", advice: "8 项危险因素里你占了 3 项以上。建议到卫生院做一次脑卒中筛查（量血压、查血脂和血糖、做心电图等），把能控制的先控制住：血压、血糖、血脂达标，戒烟，动起来。" };
+    else if (n >= 1) r = { level: "中危：危险因素有 " + n + " 项", cls: "warn", advice: "还没到高危线，但危险因素已经有了。逐项改：有高血压、糖尿病的按时吃药、定期复查，吸烟的尽早戒，体重超标的减下来，每年体检盯紧血压、血糖、血脂。" };
+    else r = { level: "低危：没有勾选危险因素", cls: "ok", advice: "继续保持健康的生活方式，每年做一次体检，量血压、查血糖和血脂。" };
+    showResult($("stk-res"), r, "");
+    store.set("last_stroke", { n: n, hist: hist > 0, level: r.level, t: Date.now() });
+  });
+
   /* ---------- 汇总 ---------- */
   function renderReport() {
     var rows = [], bp = store.get("last_bp"), glu = store.get("last_glu"), bmi = store.get("last_bmi"), avg = bpAvg(7), fl = store.get("follow", {});
@@ -421,6 +559,10 @@ th{color:var(--muted);font-weight:normal}
     if (avg) rows.push(["家庭血压 7 天平均", avg.s + "/" + avg.d + " mmHg（" + avg.n + " 次）", avg.s >= 135 || avg.d >= 85 ? "超过 135/85" : "正常范围", "近 7 天"]);
     if (glu) rows.push(["血糖（" + GLU_NAME[glu.type] + "）", glu.v + " mmol/L", gluGrade(glu.type, glu.v, !!glu.sym).level, date(glu.t)]);
     if (bmi) rows.push(["BMI", bmi.bmi + "（" + bmi.h + " cm / " + bmi.w + " kg" + (bmi.waist ? "，腰围 " + bmi.waist + " cm" : "") + "）", bmi.level, date(bmi.t)]);
+    var dmr = store.get("last_dmrisk"), lip = store.get("last_lipid"), stk = store.get("last_stroke");
+    if (dmr) rows.push(["糖尿病风险评分", dmr.score + " 分（满分 51）", dmr.score >= 25 ? "高风险（≥25 分）" : "低风险", date(dmr.t)]);
+    if (lip) rows.push(["血脂自查", "填入的四项指标", lip.level, date(lip.t)]);
+    if (stk) rows.push(["脑卒中风险自查", stk.hist ? "有中风/小中风病史" : "危险因素 " + stk.n + " 项", stk.level, date(stk.t)]);
     var html = rows.length
       ? "<table><thead><tr><th>项目</th><th>数值</th><th>结果</th><th>日期</th></tr></thead><tbody>" +
         rows.map(function (r) { return "<tr><td>" + r.map(esc).join("</td><td>") + "</td></tr>"; }).join("") + "</tbody></table>"
