@@ -66,7 +66,7 @@ th{color:var(--muted);font-weight:normal}
   .report{display:block!important}
   body.print-card .report{display:none!important}
   body.print-card #p-follow{display:block!important}
-  body.print-card #p-follow>*:not(.card){display:none!important}
+  body.print-card #p-follow>*:not(#f-card){display:none!important}
 }
 </style>
 </head>
@@ -325,7 +325,7 @@ th{color:var(--muted);font-weight:normal}
     if (!v || v <= 0 || v > 40) { alert("请输入正确的血糖值（单位 mmol/L）。如果你的数值是 mg/dL，除以 18 就是 mmol/L。"); return; }
     var r = gluGrade(type, v, sym);
     showResult($("glu-res"), r);
-    store.set("last_glu", { type: type, v: v, t: Date.now() });
+    store.set("last_glu", { type: type, v: v, sym: sym, t: Date.now() });
   });
 
   /* ---------- BMI ---------- */
@@ -419,7 +419,7 @@ th{color:var(--muted);font-weight:normal}
     var GLU_NAME = { fasting: "空腹", post2h: "餐后 2 小时", random: "随机" };
     if (bp) rows.push(["血压（最近一次）", bp.s + "/" + bp.d + " mmHg" + (bp.hr ? "，心率 " + bp.hr : ""), bpGrade(bp.s, bp.d).level, date(bp.t)]);
     if (avg) rows.push(["家庭血压 7 天平均", avg.s + "/" + avg.d + " mmHg（" + avg.n + " 次）", avg.s >= 135 || avg.d >= 85 ? "超过 135/85" : "正常范围", "近 7 天"]);
-    if (glu) rows.push(["血糖（" + GLU_NAME[glu.type] + "）", glu.v + " mmol/L", gluGrade(glu.type, glu.v, false).level, date(glu.t)]);
+    if (glu) rows.push(["血糖（" + GLU_NAME[glu.type] + "）", glu.v + " mmol/L", gluGrade(glu.type, glu.v, !!glu.sym).level, date(glu.t)]);
     if (bmi) rows.push(["BMI", bmi.bmi + "（" + bmi.h + " cm / " + bmi.w + " kg" + (bmi.waist ? "，腰围 " + bmi.waist + " cm" : "") + "）", bmi.level, date(bmi.t)]);
     var html = rows.length
       ? "<table><thead><tr><th>项目</th><th>数值</th><th>结果</th><th>日期</th></tr></thead><tbody>" +
@@ -437,8 +437,9 @@ th{color:var(--muted);font-weight:normal}
   $("r-print").addEventListener("click", function () { renderReport(); window.print(); });
 
   renderBpLog();
-  var h = location.hash.slice(1);
-  if (h && document.getElementById("p-" + h)) openTab(h);
+  function fromHash() { var h = location.hash.slice(1); if (h && document.getElementById("p-" + h)) openTab(h); }
+  window.addEventListener("hashchange", fromHash);
+  fromHash();
 })();
 </script>
 </body>
