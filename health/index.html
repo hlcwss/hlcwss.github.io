@@ -260,7 +260,7 @@ th{color:var(--muted);font-weight:normal}
     <h2>汇总报告</h2>
     <p class="note">把这页截图或打印出来，下次看病或随访时给家庭医生看。</p>
     <div id="report-body"></div>
-    <div class="btns"><button class="btn" id="r-print">打印 / 另存为 PDF</button></div>
+    <div class="btns"><button class="btn" id="r-print">打印 / 另存为 PDF</button><button class="btn ghost" id="r-clear">清空全部记录</button></div>
   </section>
 
   <section class="report" id="print-report"></section>
@@ -274,7 +274,8 @@ th{color:var(--muted);font-weight:normal}
   var $ = function (id) { return document.getElementById(id); };
   var store = {
     get: function (k, d) { try { var v = localStorage.getItem("hs_" + k); return v ? JSON.parse(v) : d; } catch (e) { return d; } },
-    set: function (k, v) { try { localStorage.setItem("hs_" + k, JSON.stringify(v)); } catch (e) {} }
+    set: function (k, v) { try { localStorage.setItem("hs_" + k, JSON.stringify(v)); } catch (e) {} },
+    clearAll: function () { ["bp_log", "last_bp", "last_glu", "last_bmi", "last_dmrisk", "last_lipid", "last_stroke", "follow"].forEach(function (k) { try { localStorage.removeItem("hs_" + k); } catch (e) {} }); }
   };
   var num = function (id) { var v = parseFloat($(id).value); return isNaN(v) ? null : v; };
   var esc = function (s) { return String(s).replace(/[&<>"']/g, function (c) { return { "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]; }); };
@@ -577,6 +578,15 @@ th{color:var(--muted);font-weight:normal}
       (bpLog().length ? "<h3>家庭血压记录（最近 30 次）</h3>" + $("bp-chart").outerHTML.replace('id="bp-chart"', "") : "");
   }
   $("r-print").addEventListener("click", function () { renderReport(); window.print(); });
+  $("r-clear").addEventListener("click", function () {
+    if (!confirm("确定要清空全部记录吗？将删除本浏览器保存的血压记录、各项目最近一次自测结果和随访提醒信息，删除后无法恢复。")) return;
+    store.clearAll();
+    ["f-name", "f-last", "f-doc", "f-tel"].forEach(function (id) { $(id).value = ""; });
+    $("f-type").value = "htn";
+    $("f-card").innerHTML = "";
+    renderBpLog(); renderReport();
+    alert("已清空全部记录。");
+  });
 
   renderBpLog();
   function fromHash() { var h = location.hash.slice(1); if (h && document.getElementById("p-" + h)) openTab(h); }
